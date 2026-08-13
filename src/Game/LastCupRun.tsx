@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { t } from './i18n';
 import { playAllReady, playComplete, playFinish, playTap } from './sounds';
+import { CompletionChampion, CompletionLeaderboard, formatCompletionTime, useCompletionRanking } from './CompletionRanking';
 import './LastCupRun.less';
 
 type ClipId = 'melon' | 'lemon' | 'guac' | 'mango' | 'pearl';
@@ -33,6 +34,8 @@ const VIDEO_FADE_MS = 450;
 const FALLBACK_DURATION_MS = 3200;
 const CLIMAX_SUBTITLE_DELAY_MS = 2800;
 const REVELATION_HOLD_MS = 2800;
+const GAME_NAME = 'UMe: The Last Cup Run';
+const POSTER_URL = 'https://yinxinghuan.github.io/games/posters/ume-last-cup.png';
 
 const mediaUrl = (folder: 'videos' | 'frames', name: string) => `${import.meta.env.BASE_URL}${folder}/${name}`;
 
@@ -53,6 +56,10 @@ export default function LastCupRun() {
   const [videoExiting, setVideoExiting] = useState(false);
   const [muted, setMuted] = useState(false);
   const [justCompleted, setJustCompleted] = useState<ClipId | null>(null);
+  const ranking = useCompletionRanking({
+    gameName: GAME_NAME, posterUrl: POSTER_URL,
+    copy: { title: t('rank.title'), leaders: t('rank.leaders'), me: t('rank.me'), empty: t('rank.empty'), loading: t('rank.loading'), openInAlterU: t('rank.openInAlterU'), getAlterU: t('rank.getAlterU'), close: t('rank.close') },
+  });
   const timers = useRef<number[]>([]);
 
   const clearTimers = useCallback(() => {
@@ -68,6 +75,7 @@ export default function LastCupRun() {
 
   const playClip = useCallback((clip: Clip) => {
     if (phase !== 'idle') return;
+    ranking.startRun();
     clearTimers();
     playTap(!muted);
     setCurrentClip(clip);
@@ -77,7 +85,7 @@ export default function LastCupRun() {
     setJustCompleted(null);
     setPhase('playing');
     later(() => setSubtitleVisible(true), SUBTITLE_DELAY_MS);
-  }, [clearTimers, later, muted, phase]);
+  }, [clearTimers, later, muted, phase, ranking.startRun]);
 
   const finishClip = useCallback(() => {
     if (!currentClip || phase === 'holding') return;
@@ -124,6 +132,7 @@ export default function LastCupRun() {
 
   const finishClimax = useCallback(() => {
     if (phase === 'revelation' || phase === 'done') return;
+    ranking.finishRun();
     setPhase('revelation');
     setSubtitleVisible(true);
     playFinish(!muted);
@@ -131,7 +140,7 @@ export default function LastCupRun() {
       setSubtitleVisible(false);
       setPhase('done');
     }, REVELATION_HOLD_MS);
-  }, [later, muted, phase]);
+  }, [later, muted, phase, ranking.finishRun]);
 
   const reset = useCallback(() => {
     clearTimers();
@@ -143,7 +152,8 @@ export default function LastCupRun() {
     setVideoFallback(false);
     setVideoExiting(false);
     setJustCompleted(null);
-  }, [clearTimers, muted]);
+    ranking.resetRun();
+  }, [clearTimers, muted, ranking.resetRun]);
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 
@@ -213,14 +223,14 @@ export default function LastCupRun() {
 
         <header className="ulc-brandbar">
           <div className="ulc-brandmark" aria-label="UMe">UMe</div>
-          <button
+          <div className="ulc-brandactions"><CompletionChampion ranking={ranking} /><button
             type="button"
             className="ulc-iconbtn"
             onClick={() => setMuted((value) => !value)}
             aria-label={muted ? t('sound.off') : t('sound.on')}
           >
             <SoundIcon muted={muted} />
-          </button>
+          </button></div>
         </header>
 
         {phase === 'idle' && seen.size === 0 && (
@@ -286,12 +296,13 @@ export default function LastCupRun() {
             <span>{t('done.eyebrow')}</span>
             <h2>{t('done.title')}</h2>
             <p>{t('done.body')}</p>
-            <button type="button" onPointerDown={reset} onKeyDown={(event) => {
+            {ranking.completionMs != null && <div className="ulc-result__time"><span>{t('done.time')}</span><strong>{formatCompletionTime(ranking.completionMs)}</strong></div>}
+            <div className="ulc-result__actions"><button type="button" onPointerDown={reset} onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
                 reset();
               }
-            }}>{t('done.again')}</button>
+            }}>{t('done.again')}</button><button type="button" className="is-secondary" onPointerDown={ranking.openLeaderboard}>{t('rank.leaders')}</button></div>
           </div>
         )}
 
@@ -303,6 +314,7 @@ export default function LastCupRun() {
             </div>
           </footer>
         )}
+        <CompletionLeaderboard ranking={ranking} />
       </section>
     </main>
   );

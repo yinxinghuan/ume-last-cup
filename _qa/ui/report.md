@@ -83,3 +83,10 @@
 - Final average：4.71（正式视频切片）。
 - Categories below 3：无。
 - Decision：正式视频、交互、响应式与回退路径均通过，可进入发布门禁。
+
+## 通关计时与排行榜复验 — 2026-08-13
+
+- `completion-ranking/platform-layout-result-{390x844,320x568}.png`：结算用时、重玩和排行榜入口完整可见。
+- `completion-ranking/platform-layout-leaderboard-{390x844,320x568}.png`：榜单头像、名字、个人标记与时间列完整可见。
+- 两种尺寸均无页面溢出或运行错误；关闭按钮 44 × 44 px，榜单行高 58 px。
+- 模拟平台桥接验证成绩保存与榜单读取；所有通关成绩最低为 10 分，可供平台配置领券门槛。

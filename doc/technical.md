@@ -9,6 +9,7 @@
 - 多语言：轻量 `zh/en` 字典，根据 `game_locale` 或浏览器语言选择。
 - 平台标识：永久 UUID 为 `d54e9dfe-8b91-4752-9e8b-4e266d33c699`，同时写入 `index.html` meta 与 `window.__GAME_UUID__`。
 - 制作期资产：正式静态场景通过 Aigram transit 生图接口制作；角色参考来自用户提供的 UMe 品牌手册单角色页。
+- Aigram Runtime Rank API：通关上传时间成绩、读取 UUID 隔离排行榜并发送 `score_beat` 通知。
 
 ## 2. 目录结构
 
@@ -23,6 +24,8 @@
 - `src/Game/LastCupRun.less`：视觉 token、响应式布局、热点、进度、字幕、结算、动效与减少动态模式。
 - `src/Game/i18n.ts`：中文和英文界面、字幕与可访问标签。
 - `src/Game/sounds.ts`：Web Audio 合成音效。
+- `src/Game/CompletionRanking.tsx/.less`：计时、时间成绩编码、冠军入口、排行榜、用户资料跳转与被超越通知。
+- `src/shared/runtime/`、`src/shared/leaderboard/useGameScore.ts`：平台桥接、排名读写和事件上报。
 - `public/hero.png`：只含粉色兔子、最后一杯和五件分支物品的初始主场景。
 - `public/frames/end_*.png`：五张单角色完整生成分支尾帧与粉色兔子接杯高潮尾帧。
 - `public/frames/result_delivered.png`：顾客接杯与珍珠落稳的结算微距。
@@ -41,7 +44,7 @@
 - 输入：高频热点与主要动作使用 `onPointerDown`；键盘通过 `Enter/Space` 触发；声音按钮使用 `onClick`。触控目标均大于 44 × 44 CSS px。
 - 视觉反馈：热点波纹、完成编号、五颗彩色珍珠进度、首次完成粒子、高潮按钮和结算切换；`prefers-reduced-motion` 关闭循环波纹与粒子位移。
 - 多语言：所有用户可见文字由 `t()` 提供；英文长标签只存在于可访问名称，不挤压画面。
-- 数据与后端：本游戏不保存分数、不接排行榜、不在运行时生成图片，也不上传用户内容；重玩只重置当前内存状态。
+- 通关排名：首次热点以 `performance.now()` 开始计时，高潮视频结束停止；上传 `max(10, 10,000,000 - round(durationMs / 10))`，UI 还原为 `mm:ss.t`。所有通关成绩都达到平台可配置的 10 分领券门槛；成绩上传不预判登录；排行榜显示头像、资料跳转，外部访客看到 AlterU 下载入口。重玩只重置当前内存进度和计时。
 
 ## 4. 扩展点
 
