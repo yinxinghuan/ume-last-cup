@@ -26,6 +26,7 @@
 - `src/Game/sounds.ts`：Web Audio 合成音效。
 - `src/Game/CompletionRanking.tsx/.less`：计时、时间成绩编码、冠军入口、排行榜、用户资料跳转与被超越通知。
 - `src/shared/runtime/`、`src/shared/leaderboard/useGameScore.ts`：平台桥接、排名读写和事件上报。
+- `worker/index.js`：自托管 frontend-only 健康检查，不持有排行榜或游戏数据库。
 - `public/hero.png`：只含粉色兔子、最后一杯和五件分支物品的初始主场景。
 - `public/frames/end_*.png`：五张单角色完整生成分支尾帧与粉色兔子接杯高潮尾帧。
 - `public/frames/result_delivered.png`：顾客接杯与珍珠落稳的结算微距。
